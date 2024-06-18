@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 
 // TODO: this is still half a pile of LLM generated noise. It needs a lot of cleanup,
 // especially around its bizarre tendency to tun all bits and bytes into iterators
@@ -30,12 +29,14 @@ fn divide_into_blocks(padded_message: &[u8], l: usize) -> Vec<&[u8]> {
     padded_message.chunks(l / 8).collect()
 }
 
-fn t_xor_l(block: &[u8], rounds: usize) -> Vec<u8> {
+// TODO
+fn t_xor_l(block: &[u8], _rounds: usize) -> Vec<u8> {
     // Implement the T+l transformation (placeholder)
     block.to_vec()
 }
 
-fn t_plus_l(block: &[u8], rounds: usize) -> Vec<u8> {
+// TODO
+fn t_plus_l(block: &[u8], _rounds: usize) -> Vec<u8> {
     // Implement the T+l transformation (placeholder)
     block.to_vec()
 }
