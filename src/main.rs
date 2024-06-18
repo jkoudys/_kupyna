@@ -12,13 +12,16 @@ fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
     let n = message.len() * 8; // length in bits
     let d = ((-((n + 97) as isize) % (l as isize)) + l as isize) as usize;
     // We set the padded message size upfront to reduce allocs
-    let mut padded_message = vec![0x00, message.len() + (d / 8) + 12];
+    let mut padded_message = vec![0x00; message.len() + (d / 8) + 12];
 
+    // Copy the input message
+    padded_message[0..message.len()].copy_from_slice(message);
     // Set the high bit
-    padded_message[0] = 0b10000000;
+    padded_message[message.len()] = 0b10000000;
 
-    // message length in little-endian
-    padded_message[-12..].copy_from_slice((n as u128).to_le_bytes());
+    // Convert the length to a byte array and copy it into the padded message
+    let n_bytes = (n as u128).to_le_bytes(); // message length in little-endian
+    padded_message[message.len() + 1..message.len() + 13].copy_from_slice(&n_bytes[0..12]);
 
     padded_message
 }
