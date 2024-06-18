@@ -1,0 +1,2 @@
+# kupyna
+Kupyna hashing algorithm
