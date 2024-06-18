@@ -1,8 +1,3 @@
-
-// TODO: this is still half a pile of LLM generated noise. It needs a lot of cleanup,
-// especially around its bizarre tendency to tun all bits and bytes into iterators
-// isntead of masking directly.
-
 const L512: usize = 512;
 const L1024: usize = 1024;
 const T_512: usize = 10;
@@ -12,7 +7,8 @@ fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
     let n = message.len() * 8; // length in bits
     let d = ((-((n + 97) as isize) % (l as isize)) + l as isize) as usize;
     // We set the padded message size upfront to reduce allocs
-    let mut padded_message = vec![0x00; message.len() + (d / 8) + 12];
+    let paddedlen = message.len() + (d / 8) + 12;
+    let mut padded_message = vec![0x00; paddedlen];
 
     // Copy the input message
     padded_message[0..message.len()].copy_from_slice(message);
@@ -21,7 +17,7 @@ fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
 
     // Convert the length to a byte array and copy it into the padded message
     let n_bytes = (n as u128).to_le_bytes(); // message length in little-endian
-    padded_message[message.len() + 1..message.len() + 13].copy_from_slice(&n_bytes[0..12]);
+    padded_message[paddedlen - 12..].copy_from_slice(&n_bytes[0..12]);
 
     padded_message
 }
@@ -47,13 +43,10 @@ fn r_l_n(block: &[u8], n: usize) -> Vec<u8> {
 }
 
 fn kupyna_hash(message: &[u8], n: usize) -> Vec<u8> {
-    let l = if (8..=256).contains(&n) { L512 } else { L1024 };
-    let t = if l == L512 { T_512 } else { T_1024 };
-
-    let iv = if l == L512 {
-        vec![0x01; 510 / 8]
+    let (l, t, iv) = if 8 <= n && n <= 256 {
+        (L512, T_512, vec![0x01; 510 / 8])
     } else {
-        vec![0x01; 1023 / 8]
+        (L1024, T_1024, vec![0x01; 1023 / 8])
     };
 
     let padded_message = pad_message(message, l);
