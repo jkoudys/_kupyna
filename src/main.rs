@@ -9,17 +9,16 @@ const T_512: usize = 10;
 const T_1024: usize = 14;
 
 fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
-    let mut padded_message = Vec::from(message);
     let n = message.len() * 8; // length in bits
     let d = ((-((n + 97) as isize) % (l as isize)) + l as isize) as usize;
+    // We set the padded message size upfront to reduce allocs
+    let mut padded_message = vec![0x00, message.len() + (d / 8) + 12];
 
-    padded_message.push(0x80); // single '1' bit
+    // Set the high bit
+    padded_message[0] = 0b10000000;
 
-    // Zero out the end pad.
-    padded_message.resize(padded_message.len() + (d / 8), 0x00);
-
-    let n_bytes = (n as u128).to_le_bytes(); // message length in little-endian
-    padded_message.extend_from_slice(&n_bytes[0..12]);
+    // message length in little-endian
+    padded_message[-12..].copy_from_slice((n as u128).to_le_bytes());
 
     padded_message
 }
