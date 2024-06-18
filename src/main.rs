@@ -15,9 +15,8 @@ fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
 
     padded_message.push(0x80); // single '1' bit
 
-    for _ in 0..(d / 8) {
-        padded_message.push(0x00); // d zero bits
-    }
+    // Zero out the end pad.
+    padded_message.resize(padded_message.len() + (d / 8), 0x00);
 
     let n_bytes = (n as u128).to_le_bytes(); // message length in little-endian
     padded_message.extend_from_slice(&n_bytes[0..12]);
