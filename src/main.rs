@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests;
+mod tables;
 
 const L512: usize = 512;
 const L1024: usize = 1024;
