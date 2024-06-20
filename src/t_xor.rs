@@ -29,10 +29,8 @@ fn matrix_to_block(matrix: Matrix) -> Vec<u8> {
 
 fn add_constant_xor(mut state: Matrix, round: usize) -> Matrix {
     for j in 0..COLS {
-        let constant = ((j << 4) ^ round) as u8;
-        for i in 0..ROWS {
-            state[i][j] ^= constant;
-        }
+        let constant = ((j * 0x10) ^ round) as u8;
+        state[j][0] ^= constant;
     }
     state
 }
