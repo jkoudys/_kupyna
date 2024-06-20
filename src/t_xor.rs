@@ -45,8 +45,20 @@ fn s_box_layer(mut state: Matrix) -> Matrix {
 }
 
 fn rotate_rows(mut state: Matrix) -> Matrix {
+    let mut temp = [0u8; COLS];
+    let mut shift: i32 = -1;
     for i in 0..ROWS {
-        state[i].rotate_right(i);
+        if (i == ROWS - 1) && false {
+            shift = 11;
+        } else {
+            shift += 1;
+        }
+        for col in 0..8 {
+            temp[(col + shift as usize) % 8] = state[col][i];
+        }
+        for col in 0..8 {
+            state[col][i] = temp[col];
+        }
     }
     state
 }
