@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests;
 mod tables;
+mod t_xor;
 
 const L512: usize = 512;
 const L1024: usize = 1024;
@@ -48,21 +49,6 @@ fn pad_message(message: &[u8], l: usize) -> Vec<u8> {
 /// * A `Vec<&[u8]>` containing references to the blocks.
 fn divide_into_blocks(padded_message: &[u8], l: usize) -> Vec<&[u8]> {
     padded_message.chunks(l / 8).collect()
-}
-
-/// Placeholder for the T⊕l transformation.
-///
-/// # Arguments
-///
-/// * `block` - A byte slice representing the block to be transformed.
-/// * `_rounds` - The number of rounds to perform.
-///
-/// # Returns
-///
-/// * A `Vec<u8>` containing the transformed block.
-fn t_xor_l(block: &[u8], _rounds: usize) -> Vec<u8> {
-    // Implement the T⊕l transformation (placeholder)
-    block.to_vec()
 }
 
 /// Placeholder for the T+l transformation.
@@ -118,12 +104,12 @@ fn kupyna_hash(message: &[u8], n: usize) -> Vec<u8> {
 
     for block in blocks {
         let m_vec = block.to_vec();
-        h = t_xor_l(&xor_bytes(&h, &m_vec), t);
+        h = t_xor::t_xor_l(&xor_bytes(&h, &m_vec), t);
         h = xor_bytes(&h, &t_plus_l(&m_vec, t));
         h = xor_bytes(&h, &m_vec);
     }
 
-    r_l_n(&t_xor_l(&h, t), n)
+    r_l_n(&t_xor::t_xor_l(&h, t), n)
 }
 
 /// XORs two byte slices.
