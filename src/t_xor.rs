@@ -38,7 +38,7 @@ fn add_constant_xor(mut state: Matrix, round: usize) -> Matrix {
 fn s_box_layer(mut state: Matrix) -> Matrix {
     for i in 0..ROWS {
         for j in 0..COLS {
-            state[i][j] = SBOXES[i%4][state[i][j] as usize];
+            state[j][i] = SBOXES[i%4][state[j][i] as usize];
         }
     }
     state
