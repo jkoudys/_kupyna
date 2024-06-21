@@ -44,8 +44,7 @@ pub(crate) fn add_constant_plus(mut state: Matrix, round: usize) -> Matrix {
     for j in 0..COLS {
         unsafe {
             *state_ptr.add(j) = state_ptr.add(j).read().wrapping_add(
-                0x00F0F0F0F0F0F0F3u64 ^
-                    (((((COLS - j - 1) * 0x10) ^ round) as u64) << 56)
+                0x00F0F0F0F0F0F0F3u64 ^ (((((COLS - j - 1) * 0x10) ^ round) as u64) << 56),
             );
         }
     }
@@ -56,7 +55,7 @@ pub(crate) fn add_constant_plus(mut state: Matrix, round: usize) -> Matrix {
 pub(crate) fn s_box_layer(mut state: Matrix) -> Matrix {
     for i in 0..ROWS {
         for j in 0..COLS {
-            state[j][i] = SBOXES[i%4][state[j][i] as usize];
+            state[j][i] = SBOXES[i % 4][state[j][i] as usize];
         }
     }
     state
@@ -128,15 +127,10 @@ pub(crate) fn mix_columns(mut state: Matrix) -> Matrix {
 pub fn t_xor_l(block: &[u8], rounds: usize) -> Vec<u8> {
     let mut state = block_to_matrix(block);
     for nu in 0..rounds {
-        println!("round[{}].input: {:02x?}", nu, state);
         state = add_constant_xor(state, nu);
-        println!("round[{}].add_c: {:02x?}", nu, state);
         state = s_box_layer(state);
-        println!("round[{}].s_box: {:02x?}", nu, state);
         state = rotate_rows(state);
-        println!("round[{}].s_byt: {:02x?}", nu, state);
         state = mix_columns(state);
-        println!("round[{}].m_col: {:02x?}", nu, state);
     }
     matrix_to_block(state)
 }
@@ -154,15 +148,10 @@ pub fn t_xor_l(block: &[u8], rounds: usize) -> Vec<u8> {
 pub fn t_plus_l(block: &[u8], rounds: usize) -> Vec<u8> {
     let mut state = block_to_matrix(block);
     for nu in 0..rounds {
-        println!("round[{}].input: {:02x?}", nu, state);
         state = add_constant_plus(state, nu);
-        println!("round[{}].add_c: {:02x?}", nu, state);
         state = s_box_layer(state);
-        println!("round[{}].s_box: {:02x?}", nu, state);
         state = rotate_rows(state);
-        println!("round[{}].s_byt: {:02x?}", nu, state);
         state = mix_columns(state);
-        println!("round[{}].m_col: {:02x?}", nu, state);
     }
     matrix_to_block(state)
 }

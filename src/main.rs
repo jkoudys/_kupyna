@@ -1,7 +1,7 @@
+mod t_xor_plus;
+mod tables;
 #[cfg(test)]
 mod tests;
-mod tables;
-mod t_xor_plus;
 
 const L512: usize = 512;
 const L1024: usize = 1024;
