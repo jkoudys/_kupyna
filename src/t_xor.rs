@@ -1,9 +1,12 @@
 const ROWS: usize = 8;
 const COLS: usize = 8; // For 512-bit state, adjust if needed
 
+const BITS_IN_BYTE: u8 = 8;
+const REDUCTION_POLYNOMIAL: u16 = 0x011d;
+
 type Matrix = [[u8; COLS]; ROWS];
 
-use crate::tables::SBOXES;
+use crate::tables::{MDS_MATRIX, SBOXES};
 
 const TRANSFORM_VECTOR: [u8; 8] = [0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04];
 
@@ -63,35 +66,38 @@ fn rotate_rows(mut state: Matrix) -> Matrix {
     state
 }
 
-fn galois_multiply(mut a: u8, b: u8) -> u8 {
-    let mut p = 0;
-    let mut hi_bit_set;
-    let mut b = b;
-    for _ in 0..8 {
-        if (b & 1) != 0 {
-            p ^= a;
+fn multiply_gf(mut x: u8, mut y: u8) -> u8 {
+    let mut r = 0u8;
+
+    for _ in 0..BITS_IN_BYTE {
+        if y & 1 == 1 {
+            r ^= x;
         }
-        hi_bit_set = (a & 0x80) != 0;
-        a <<= 1;
-        if hi_bit_set {
-            a ^= 0x1d; // Irreducible polynomial
+        let hbit = (x & 0x80) >> 7;
+        x <<= 1;
+        if hbit == 1 {
+            x ^= REDUCTION_POLYNOMIAL as u8;
         }
-        b >>= 1;
+        y >>= 1;
     }
-    p
+
+    r
 }
 
-fn linear_transform(mut state: Matrix) -> Matrix {
-    let mut new_state = [[0u8; COLS]; ROWS];
-    for j in 0..COLS {
-        for i in 0..ROWS {
-            new_state[i][j] = 0;
-            for k in 0..ROWS {
-                new_state[i][j] ^= galois_multiply(TRANSFORM_VECTOR[(i + k) % ROWS], state[k][j]);
+fn mix_columns(mut state: Matrix) -> Matrix {
+    let mut result = [[0u8; COLS]; ROWS];
+
+    for col in 0..COLS {
+        for row in (0..ROWS).rev() {
+            let mut product = 0u8;
+            for b in (0..ROWS).rev() {
+                product ^= multiply_gf(state[col][b], MDS_MATRIX[row][b]);
             }
+            result[col][row] = product;
         }
     }
-    new_state
+
+    result
 }
 
 /// Placeholder for the T⊕l transformation.
@@ -114,7 +120,7 @@ pub fn t_xor_l(block: &[u8], rounds: usize) -> Vec<u8> {
         println!("round[{}].s_box: {:02x?}", nu, state);
         state = rotate_rows(state);
         println!("round[{}].s_byt: {:02x?}", nu, state);
-        state = linear_transform(state);
+        state = mix_columns(state);
         println!("round[{}].m_col: {:02x?}", nu, state);
     }
     matrix_to_block(state)
