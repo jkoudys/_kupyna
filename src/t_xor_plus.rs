@@ -10,7 +10,7 @@ use crate::tables::{MDS_MATRIX, SBOXES};
 
 const TRANSFORM_VECTOR: [u8; 8] = [0x01, 0x01, 0x05, 0x01, 0x08, 0x06, 0x07, 0x04];
 
-fn block_to_matrix(block: &[u8]) -> Matrix {
+pub(crate) fn block_to_matrix(block: &[u8]) -> Matrix {
     let mut matrix = [[0u8; COLS]; ROWS];
     for i in 0..ROWS {
         for j in 0..COLS {
@@ -30,7 +30,7 @@ fn matrix_to_block(matrix: Matrix) -> Vec<u8> {
     block
 }
 
-fn add_constant_xor(mut state: Matrix, round: usize) -> Matrix {
+pub(crate) fn add_constant_xor(mut state: Matrix, round: usize) -> Matrix {
     for j in 0..COLS {
         let constant = ((j * 0x10) ^ round) as u8;
         state[j][0] ^= constant;
@@ -38,7 +38,7 @@ fn add_constant_xor(mut state: Matrix, round: usize) -> Matrix {
     state
 }
 
-fn add_constant_plus(mut state: Matrix, round: usize) -> Matrix {
+pub(crate) fn add_constant_plus(mut state: Matrix, round: usize) -> Matrix {
     let state_ptr = state.as_mut_ptr() as *mut u64;
 
     for j in 0..COLS {
@@ -53,7 +53,7 @@ fn add_constant_plus(mut state: Matrix, round: usize) -> Matrix {
     state
 }
 
-fn s_box_layer(mut state: Matrix) -> Matrix {
+pub(crate) fn s_box_layer(mut state: Matrix) -> Matrix {
     for i in 0..ROWS {
         for j in 0..COLS {
             state[j][i] = SBOXES[i%4][state[j][i] as usize];
@@ -62,7 +62,7 @@ fn s_box_layer(mut state: Matrix) -> Matrix {
     state
 }
 
-fn rotate_rows(mut state: Matrix) -> Matrix {
+pub(crate) fn rotate_rows(mut state: Matrix) -> Matrix {
     let mut temp = [0u8; COLS];
     let mut shift: i32 = -1;
     for i in 0..ROWS {
@@ -99,7 +99,7 @@ fn multiply_gf(mut x: u8, mut y: u8) -> u8 {
     r
 }
 
-fn mix_columns(mut state: Matrix) -> Matrix {
+pub(crate) fn mix_columns(mut state: Matrix) -> Matrix {
     let mut result = [[0u8; COLS]; ROWS];
 
     for col in 0..COLS {
